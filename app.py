@@ -6,7 +6,9 @@ CODIGOS_BACEN = {
     'pessoal': 25401,
     'veicular': 25402,
     'imobiliario': 25404,
-    'reforma': 25403  # Supondo que exista
+    'reforma': 25403,
+    'consignado': 0.0185,  # 1,85% ao mês
+    'consignado_privado': 0.03  # 3% ao mês
 }
 
 def obter_taxa_bacen(tipo_emprestimo):
