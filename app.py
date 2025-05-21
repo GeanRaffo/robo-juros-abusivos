@@ -17,7 +17,9 @@ def obter_taxa_bacen(tipo_emprestimo):
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
-        return float(data[0]['valor'].replace(",", ".")) / 100  # converte para decimal
+        taxa_anual = float(data[0]['valor'].replace(",", ".")) / 100
+        taxa_mensal = (1 + taxa_anual) ** (1/12) - 1
+        return taxa_mensal
     return None
 
 # Cálculo de taxa de juros real (juros compostos) com método da taxa implícita
@@ -78,4 +80,3 @@ if st.button("Verificar"):
 
     else:
         st.error("Erro ao obter taxa média para o tipo de empréstimo selecionado.")
-
