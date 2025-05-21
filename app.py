@@ -1,5 +1,8 @@
 import streamlit as st
 import requests
+import locale
+
+locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
 
 # Dicionário de códigos da API por tipo de empréstimo
 CODIGOS_BACEN = {
@@ -10,6 +13,7 @@ CODIGOS_BACEN = {
     'consignado': 0.0185,  # 1,85% ao mês
     'consignado_privado': 0.03  # 3% ao mês
 }
+
 
 def obter_taxa_bacen(tipo_emprestimo):
     codigo = CODIGOS_BACEN.get(tipo_emprestimo)
@@ -24,7 +28,7 @@ def obter_taxa_bacen(tipo_emprestimo):
         return taxa_mensal
     return None
 
-# Cálculo de taxa de juros real (juros compostos) com método da taxa implícita
+
 def calcular_taxa_juros_mensal(valor_presente, parcela, num_parcelas):
     taxa = 0.01
     precisao = 0.00001
@@ -37,11 +41,12 @@ def calcular_taxa_juros_mensal(valor_presente, parcela, num_parcelas):
         taxa += erro / valor_presente / 10
     return taxa
 
-# Cálculo da nova parcela se juros forem ajustados à média do Bacen
+
 def calcular_parcela_com_taxa(valor_presente, taxa, num_parcelas):
     if taxa == 0:
         return valor_presente / num_parcelas
     return valor_presente * taxa / (1 - (1 + taxa) ** (-num_parcelas))
+
 
 # Interface do App
 st.title("🔎 Verificador de Juros Abusivos Bancários")
@@ -56,29 +61,21 @@ parcelas_pagas = st.number_input("Quantas parcelas já foram pagas?", min_value=
 if st.button("Verificar"):
     taxa_media = obter_taxa_bacen(tipo)
     if taxa_media:
-        # Cálculo da taxa contratada
         juros_calc = calcular_taxa_juros_mensal(valor_emprestado, valor_parcela, int(num_parcelas))
-        
-        # Cálculo de parcela justa com base na taxa do Bacen
         parcela_justa = calcular_parcela_com_taxa(valor_emprestado, taxa_media, int(num_parcelas))
-
-        # Cálculo da economia possível futura
         parcelas_restantes = int(num_parcelas - parcelas_pagas)
         economia = (valor_parcela - parcela_justa) * parcelas_restantes if parcela_justa < valor_parcela else 0
-
-        # Resultado
         resultado = "🚨 POSSÍVEL ABUSO" if juros_calc > (taxa_media + 0.01) else "✅ Dentro da média"
 
-        st.metric("Taxa média do mercado (BACEN)", f"{taxa_media*100:.2f}% ao mês")
-        st.metric("Taxa do seu contrato", f"{juros_calc*100:.2f}% ao mês")
+        st.metric("Taxa média do mercado (BACEN)", f"{taxa_media * 100:,.2f}%".replace('.', ','))
+        st.metric("Taxa do seu contrato", f"{juros_calc * 100:,.2f}%".replace('.', ','))
         st.metric("Resultado", resultado)
 
         st.markdown("---")
         st.subheader("📉 Simulação com taxa média do Bacen")
-        st.write(f"Parcela original: **R${valor_parcela:.2f}**")
-        st.write(f"Parcela ideal estimada (com taxa do Bacen): **R${parcela_justa:.2f}**")
+        st.write(f"Parcela original: **{locale.currency(valor_parcela, grouping=True)}**")
+        st.write(f"Parcela ideal estimada (com taxa do Bacen): **{locale.currency(parcela_justa, grouping=True)}**")
         st.write(f"Parcelas restantes: **{parcelas_restantes}**")
-        st.write(f"💰 Possível economia nas parcelas futuras: **R${economia:.2f}**")
-
+        st.write(f"💰 Possível economia nas parcelas futuras: **{locale.currency(economia, grouping=True)}**")
     else:
         st.error("Erro ao obter taxa média para o tipo de empréstimo selecionado.")
