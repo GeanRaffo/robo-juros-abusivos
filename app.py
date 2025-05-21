@@ -78,3 +78,4 @@ if st.button("Verificar"):
 
     else:
         st.error("Erro ao obter taxa média para o tipo de empréstimo selecionado.")
+
